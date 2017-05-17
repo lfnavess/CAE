@@ -97,6 +97,8 @@ WHERE
 		OR #REDEDUCATIVA."deleted" 				<> #SICC3."deleted"
 		OR #REDEDUCATIVA."emailnotifications"	<> #SICC3."emailnotifications"
 	);
+
+GO
 	
 --cursos
 IF OBJECT_ID('dbo.cursos') IS NOT NULL DROP TABLE dbo.cursos;
@@ -105,6 +107,8 @@ SELECT * INTO "Cursos" FROM "WWW.REDEDUCATIVA.COM.MX"."comex"."dbo"."comex_cours
 --inscripciones
 IF OBJECT_ID('dbo.inscripciones') IS NOT NULL DROP TABLE dbo.inscripciones;
 SELECT * INTO "inscripciones" FROM "WWW.REDEDUCATIVA.COM.MX"."comex"."dbo"."comex_enrolments";
+
+GO
 
 --Reporte del año	
 SELECT *
