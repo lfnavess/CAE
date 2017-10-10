@@ -1,5 +1,61 @@
 USE [Reportes];
 
+--Limpiar email confirmado cuando pasa mas de un año
+UPDATE "tbl_posiciones"
+SET
+	"tbl_posiciones"."email_confirmed" = NULL,
+	"tbl_posiciones"."email_confirmed_date" = GETDATE(),
+	"tbl_posiciones"."updated_date" = GETDATE(),
+	"tbl_posiciones"."updated_user" = 30434
+FROM "tbl_posiciones"
+WHERE
+    "tbl_posiciones"."email_confirmed" = 1
+    AND "tbl_posiciones"."email_confirmed_date" < DATEADD(year, -1, GETDATE());
+
+--Limpiar email confirmado cuando email ya no existe
+UPDATE "tbl_posiciones"
+SET
+	"tbl_posiciones"."email_confirmed" = NULL,
+	"tbl_posiciones"."email_confirmed_date" = GETDATE(),
+	"tbl_posiciones"."updated_date" = GETDATE(),
+	"tbl_posiciones"."updated_user" = 30434
+FROM "tbl_posiciones"
+WHERE
+    "tbl_posiciones"."email" IS NULL
+    AND "tbl_posiciones"."email_confirmed" = 1;
+
+--Limpiar Equipo, Telefono, telefono movil, incapacidad, cuando el usuario es baja y ya no tiene mail
+UPDATE "tbl_posiciones"
+SET
+	"tbl_posiciones"."extension" = NULL,
+	"tbl_posiciones"."movil" = NULL,
+	"tbl_posiciones"."equipo" = NULL,
+	"tbl_posiciones"."equipo_inserted" = CASE WHEN "tbl_posiciones"."equipo" IS NOT NULL THEN GETDATE() ELSE "tbl_posiciones"."equipo_inserted" END,
+	"tbl_posiciones"."incapacidad" = NULL,
+	"tbl_posiciones"."updated_date" = GETDATE(),
+	"tbl_posiciones"."updated_user" = 30434
+FROM "tbl_posiciones"
+WHERE
+    "tbl_posiciones"."baja" IS NOT NULL
+    AND "tbl_posiciones"."email" IS NULL
+    AND (
+        "tbl_posiciones"."equipo" IS NOT NULL
+        OR "tbl_posiciones"."extension" IS NOT NULL
+        OR "tbl_posiciones"."movil" IS NOT NULL
+        OR "tbl_posiciones"."incapacidad" IS NOT NULL
+    );    
+    
+--Limpiar incapacidad cuando lleva mas de 6 meses
+UPDATE "tbl_posiciones"
+SET
+	"tbl_posiciones"."incapacidad" = NULL,
+	"tbl_posiciones"."updated_date" = GETDATE(),
+	"tbl_posiciones"."updated_user" = 30434
+FROM "tbl_posiciones"
+WHERE "tbl_posiciones"."incapacidad" < DATEADD(month, -6, GETDATE());
+
+GO
+
 IF OBJECT_ID('tempdb..#SICC3') IS NOT NULL DROP TABLE #SICC3
 SELECT
 	"tbl_colaboradores_view"."CAE ID"																		AS "id",
@@ -17,7 +73,7 @@ SELECT
 	CONVERT(VARCHAR(40), "tbl_colaboradores_view"."Posición >Alta", 103) COLLATE Latin1_General_CS_AS		AS "fax",
 	CONVERT(VARCHAR(8), "tbl_colaboradores_view"."Posición >Baja", 112) COLLATE Latin1_General_CS_AS		AS "datecredituse",
 	CAST("jefe"."Nombre corto" AS NVARCHAR(200)) COLLATE Latin1_General_CS_AS								AS "address",
-	CAST(NULL AS VARCHAR(40)) COLLATE Latin1_General_CS_AS													AS "dni",
+	CAST("tbl_colaboradores_view"."PPGUSER" AS VARCHAR(40)) COLLATE Latin1_General_CS_AS					AS "dni",
 	CAST(NULL AS VARCHAR(40)) COLLATE Latin1_General_CS_AS													AS "city",
 	CASE WHEN "tbl_colaboradores_view"."CAE licencia" = 0 THEN 1 ELSE 0 END									AS "deleted",
 	CASE WHEN "tbl_colaboradores_view"."Posición >Email" IS NULL THEN 0 ELSE 1 END							AS "emailnotifications",
@@ -52,6 +108,7 @@ INTO #REDEDUCATIVA
 FROM "WWW.REDEDUCATIVA.COM.MX"."comex"."dbo"."vt_users" 
 WHERE "vt_users"."siteid" = 5;
 
+GO
 
 UPDATE "vt_users" SET
 	"vt_users"."username" 			= #SICC3."username",
@@ -114,11 +171,12 @@ GO
 SELECT *
 FROM "Reporte_RedEducativa"
 WHERE
-	"Capacitación año" >= 2017 OR
-	"Curso >Categoría" = 'Institucional >Todos'
-	AND "Estado" NOT IN('Fuga', 'Cancelado')
+    "Capacitación año" >= 2017 OR
+    "Curso >Categoría" = 'Institucional >Todos'
+    AND "Alumno >Estado" NOT IN('Baja', 'Sin licencia')
 ORDER BY
-	"Alumno >Nombre corto",
-	"Alumno >PPG ID",
-	"Fecha inicio" DESC,
-	"Curso >Nombre";
+    "Alumno >Nombre corto",
+    "Alumno >PPG ID",
+    "Alumno ID",
+    "Fecha inicio" DESC,
+    "Curso >Nombre";
