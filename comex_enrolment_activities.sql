@@ -11,12 +11,9 @@ SELECT
         ELSE 0
     END                                                                                             AS"progress_measure",
     CASE
-        WHEN"vt_activities_lang"."title"='Autodiagnóstico'                                          THEN 1
-        WHEN"vt_ca_access_control"."scoreweight"IS NULL OR"vt_ca_access_control"."scoreweight"<>    THEN 2
-    END                                                                                             AS"score_type",
-    CASE
         WHEN
-            "vt_courses"."minscore"IS NOT NULL
+            "vt_activities_lang"."title"='Autodiagnóstico'
+            AND"vt_courses"."minscore"IS NOT NULL
             AND"vt_enrolment_activities"."cmi_completion_status"='completed'
             AND"vt_enrolment_activities"."cmi_score_max">0
         THEN
@@ -25,7 +22,21 @@ SELECT
                 /CAST("vt_enrolment_activities"."cmi_score_max"-"vt_enrolment_activities"."cmi_score_min"AS DECIMAL(7,4))*100
                 AS INT
             )
-    END                                                                                             AS"score",
+    END                                                                                             AS"pre_score",
+    CASE
+        WHEN
+            "vt_activities_lang"."title"<>'Autodiagnóstico'
+            AND("vt_ca_access_control"."scoreweight"IS NULL OR"vt_ca_access_control"."scoreweight"<>0)
+            AND"vt_courses"."minscore"IS NOT NULL
+            AND"vt_enrolment_activities"."cmi_completion_status"='completed'
+            AND"vt_enrolment_activities"."cmi_score_max">0
+        THEN
+            CAST(
+                CAST("vt_enrolment_activities"."cmi_score_raw"-"vt_enrolment_activities"."cmi_score_min"AS DECIMAL(7,4))
+                /CAST("vt_enrolment_activities"."cmi_score_max"-"vt_enrolment_activities"."cmi_score_min"AS DECIMAL(7,4))*100
+                AS INT
+            )
+    END                                                                                             AS"post_score",
     dbo.offset("vt_enrolment_activities"."lastaccess")                                              AS"lastaccess",
     "vt_enrolment_activities"."cmi_suspend_data"
 FROM
@@ -34,7 +45,8 @@ FROM
     LEFT JOIN"vt_courses"               ON"vt_courses"."id"="vt_course_groups"."courseid"
     LEFT JOIN"vt_course_activities"     ON"vt_course_activities"."courseid"="vt_courses"."id"
     JOIN"vt_activities"                 ON"vt_activities"."type"=1 AND"vt_activities"."id"="vt_course_activities"."activityid"
-    LEFT JOIN"vt_ca_access_control"     ON"vt_ca_access_control"."groupid"="vt_course_groups"."id"
+    LEFT JOIN"vt_ca_access_control"     ON
+        "vt_ca_access_control"."groupid"="vt_course_groups"."id"
         AND"vt_ca_access_control"."activityid"="vt_course_activities"."id"
     LEFT JOIN"vt_activities_lang"       ON"vt_activities_lang"."lang"='xx'AND"vt_activities_lang"."activityid" = "vt_course_activities"."activityid"
     LEFT JOIN"vt_enrolment_activities"  ON

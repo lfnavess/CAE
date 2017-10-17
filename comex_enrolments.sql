@@ -6,10 +6,11 @@ SELECT
     dbo.offset(GETUTCDATE())AS"reporttime",
     "enrolment_last"."enrolmentid",
     CASE
-        WHEN"enrolment_status"."progress_measure"=1 AND"vt_users"."datecredituse"IS NULL                                        THEN 1
+        WHEN"enrolment_status"."progress_measure"=1 AND"vt_users"."deleted"=0 AND"vt_users"."datecredituse"IS NULL              THEN 1
         WHEN"enrolment_status"."progress_measure"=1                                                                             THEN 3
         WHEN
             "vt_enrolments"."active"=0
+            OR"vt_users"."deleted"=1
             OR"vt_users"."datecredituse"IS NOT NULL
             OR"vt_enrolments"."endtime"<DATEADD(DAY, DATEDIFF(DAY, 0, GETDATE()), 0)
             AND"vt_courses"."active"=0                                                                                          THEN 4
@@ -53,9 +54,9 @@ FROM(
     LEFT JOIN(
         SELECT
             "enrolmentid",
-            FLOOR(AVG("progress_measure")*100)/100AS"progress_measure",
-            AVG(CASE WHEN "score_type"=1 THEN"score"END)AS"pre_score",
-            AVG(CASE WHEN "score_type"=2 THEN"score"END)AS"post_score",
+            1.0*AVG("progress_measure")/100AS"progress_measure",
+            AVG("pre_score")AS"pre_score",
+            AVG("post_score")AS"post_score",
             MAX("lastaccess")AS"lastaccess"
         FROM"comex_enrolment_activities"
         GROUP BY"enrolmentid"
