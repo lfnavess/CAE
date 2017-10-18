@@ -14,7 +14,7 @@ SELECT
             OR"vt_users"."datecredituse"IS NOT NULL
             OR"vt_enrolments"."endtime"<DATEADD(DAY, DATEDIFF(DAY, 0, GETDATE()), 0)
             AND"vt_courses"."active"=0                                                                                          THEN 4
-                                                                                    THEN 5
+        --                                                                                                                      THEN 5
         WHEN"vt_enrolments"."endtime"<DATEADD(DAY, DATEDIFF(DAY, 0, GETDATE()), 0)AND"enrolment_status"."lastaccess"IS NOT NULL THEN 6
         WHEN"vt_enrolments"."endtime"<DATEADD(DAY, DATEDIFF(DAY, 0, GETDATE()), 0)                                              THEN 7
         WHEN"vt_enrolments"."starttime"<=GETDATE()AND"enrolment_status"."lastaccess"IS NOT NULL                                 THEN 8
@@ -54,7 +54,7 @@ FROM(
     LEFT JOIN(
         SELECT
             "enrolmentid",
-            1.0*AVG("progress_measure")/100AS"progress_measure",
+            1.0*AVG("progress_measure")/100 AS"progress_measure",
             AVG("pre_score")AS"pre_score",
             AVG("post_score")AS"post_score",
             MAX("lastaccess")AS"lastaccess"
