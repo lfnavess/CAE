@@ -6,8 +6,9 @@ SELECT
     dbo.offset(GETUTCDATE())                                                                        AS"reporttime",
     "vt_enrolments"."id"                                                                            AS"enrolmentid",
     "vt_course_activities"."id"                                                                     AS"activityid",
+    "vt_courses"."id"                                                                               AS"courseid",
     CASE
-        WHEN"vt_enrolment_activities"."cmi_completion_status"='completed'OR"vt_courses"."courseversion"IN('BLENDED', 'LIGA')THEN 1.0
+        WHEN"vt_enrolment_activities"."cmi_completion_status"='completed'OR"vt_courses"."courseversion"IN('BLENDED', 'LIGA')THEN 100
         ELSE 0
     END                                                                                             AS"progress_measure",
     CASE

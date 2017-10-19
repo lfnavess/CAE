@@ -6,8 +6,8 @@ SELECT
     dbo.offset(GETUTCDATE())AS"reporttime",
     "enrolment_last"."enrolmentid",
     CASE
-        WHEN"enrolment_status"."progress_measure"=1 AND"vt_users"."deleted"=0 AND"vt_users"."datecredituse"IS NULL              THEN 1
-        WHEN"enrolment_status"."progress_measure"=1                                                                             THEN 3
+        WHEN"enrolment_status"."progress_measure"=100 AND"vt_users"."deleted"=0 AND"vt_users"."datecredituse"IS NULL              THEN 1
+        WHEN"enrolment_status"."progress_measure"=100                                                                             THEN 3
         WHEN
             "vt_enrolments"."active"=0
             OR"vt_users"."deleted"=1
@@ -24,9 +24,9 @@ SELECT
     "vt_enrolments"."userid",
     "vt_course_groups"."courseid",
     "enrolment_status"."progress_measure",
-    "enrolment_status"."pre_score",
-    CASE WHEN"enrolment_status"."progress_measure"=1 THEN"enrolment_status"."post_score"END AS"post_score",
-    CAST("vt_enrolments"."starttime"AS SMALLDATETIME)AS "starttime",
+    CASE WHEN"enrolment_status"."progress_measure"=100 THEN"enrolment_status"."pre_score"END AS"pre_score",
+    CASE WHEN"enrolment_status"."progress_measure"=100 THEN"enrolment_status"."post_score"END AS"post_score",
+    CAST("vt_enrolments"."starttime"AS SMALLDATETIME)AS"starttime",
     CAST("vt_enrolments"."endtime"AS SMALLDATETIME)AS"endtime",
     CASE
         WHEN"vt_courses"."courseversion"IN('BLENDED', 'LIGA')THEN CAST("vt_enrolments"."endtime"AS SMALLDATETIME)
@@ -54,10 +54,10 @@ FROM(
     LEFT JOIN(
         SELECT
             "enrolmentid",
-            1.0*AVG("progress_measure")/100 AS"progress_measure",
-            AVG("pre_score")AS"pre_score",
-            AVG("post_score")AS"post_score",
-            MAX("lastaccess")AS"lastaccess"
+            AVG("progress_measure") AS"progress_measure",
+            AVG("pre_score")        AS"pre_score",
+            AVG("post_score")       AS"post_score",
+            MAX("lastaccess")       AS"lastaccess"
         FROM"comex_enrolment_activities"
         GROUP BY"enrolmentid"
     )AS"enrolment_status"               ON"enrolment_status"."enrolmentid"="enrolment_last"."enrolmentid"
@@ -65,7 +65,7 @@ FROM(
     LEFT JOIN"vt_course_groups"         ON"vt_course_groups"."id"="vt_enrolments"."groupid"
     LEFT JOIN"vt_courses"               ON"vt_courses"."id"="vt_course_groups"."courseid"
     LEFT JOIN"vt_users"                 ON"vt_users"."id"="vt_enrolments"."userid"
-    LEFT JOIN"vt_users" AS"requestby"   ON
+    LEFT JOIN"vt_users"AS"requestby"    ON
         "requestby"."siteid"=5
         AND"requestby"."username"=SUBSTRING("vt_course_groups"."name", NULLIF(CHARINDEX('|',"vt_course_groups"."name"), 0) + 1, 20)
 WHERE"vt_users"."siteid"=5;
