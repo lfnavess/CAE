@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+	<title></title>
+    <script src="scripts/malla/plugins.js"></script>
+    <script src="scripts/malla/malla.js"></script>
+    <script src="scripts/malla/config.js"></script>
+</head>
+<body style="margin: 0;">
+    <form id=form1>
+        <progress id="progress" max="7" value="0" style="width:100%;height:4px;border:none;display:block;"></progress>
+        <label>Usuario: <input id="username" required style="width: 100%;"></label><br>
+        <label>Curso: <input id="coursename" required value="Customer Experience Management: cómo lograr ir más allá de la calidad en el servicio y el CRM"  style="width: 100%;"></label><br>
+        <input id="submit" type="submit" value="Inscribir">
+    </form>
+    <script>
+        (function() {
+            document.getElementById("form1").addEventListener(
+                "submit",
+                function (e) {
+                    e.preventDefault();
+                    enroll(
+                        document.getElementById("username").value,
+                        document.getElementById("coursename").value,
+                        document.getElementById("submit"),
+                        document.getElementById("progress"), 
+                        function(enrollment, user){
+                            if(!enrollment){ return; }
+                            //la inscripción se creo satisfactoriamente
+                            
+                            API_CAE.gotoEnrollment(user.username, enrollment.id);
+                        }
+                    );
+                }
+            );
+        })();
+    </script>
+</body>
+</html>
